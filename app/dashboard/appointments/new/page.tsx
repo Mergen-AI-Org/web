@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "../../../../components/ui/Button"
 import { Input } from "../../../../components/ui/Input"
-import { getPatients, createAppointment } from "../../../../lib/api"
+import { createAppointment, getPatients } from "../../../../lib/api"
 import { Patient } from "../../../../lib/types"
 
 // Appointment types
-const APPOINTMENT_TYPES = [
+const _APPOINTMENT_TYPES = [
   "Initial Consultation",
   "Follow-up",
   "Diet Review",
@@ -20,7 +20,7 @@ const APPOINTMENT_TYPES = [
 ]
 
 // Duration options in minutes
-const DURATION_OPTIONS = [15, 30, 45, 60, 90, 120]
+const _DURATION_OPTIONS = [15, 30, 45, 60, 90]
 
 export default function NewAppointmentPage() {
   const router = useRouter()

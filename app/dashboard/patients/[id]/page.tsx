@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Button } from "../../../../components/ui/Button"
 import { getPatientById, getAppointmentsByPatientId } from "../../../../lib/api"
 import { Patient, Appointment } from "../../../../lib/types"
 
-export default function PatientDetailPage({ params }: { params: { id: string } }) {
+export default function PatientDetailPage() {
   const router = useRouter()
+  const params = useParams()
+  const id = params.id as string
   const [patient, setPatient] = useState<Patient | null>(null)
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
@@ -20,7 +22,7 @@ export default function PatientDetailPage({ params }: { params: { id: string } }
         setLoading(true)
 
         // Fetch patient details
-        const patientData = await getPatientById(params.id)
+        const patientData = await getPatientById(id)
         if (!patientData) {
           setError("Patient not found")
           return
@@ -28,7 +30,7 @@ export default function PatientDetailPage({ params }: { params: { id: string } }
         setPatient(patientData)
 
         // Fetch patient appointments
-        const appointmentsData = await getAppointmentsByPatientId(params.id)
+        const appointmentsData = await getAppointmentsByPatientId(id)
         setAppointments(appointmentsData)
 
         setError(null)
@@ -41,7 +43,7 @@ export default function PatientDetailPage({ params }: { params: { id: string } }
     }
 
     fetchPatientData()
-  }, [params.id])
+  }, [id])
 
   if (loading) {
     return (

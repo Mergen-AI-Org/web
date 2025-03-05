@@ -7,83 +7,10 @@ import { Button } from "../../../../components/ui/Button"
 import { getAppointmentById, getPatientById, updateAppointment, deleteAppointment } from "../../../../lib/api"
 import { Appointment, Patient } from "../../../../lib/types"
 
-// Mock appointment data - in a real app, this would come from an API
-const MOCK_APPOINTMENTS = [
-  {
-    id: "1",
-    patientId: "1",
-    patientName: "Emma Johnson",
-    date: "2023-06-22",
-    time: "10:00 AM",
-    duration: 30,
-    type: "Follow-up",
-    status: "Scheduled",
-    notes: "Review progress on diet plan",
-  },
-  {
-    id: "2",
-    patientId: "2",
-    patientName: "Michael Smith",
-    date: "2023-06-22",
-    time: "11:00 AM",
-    duration: 45,
-    type: "Initial Consultation",
-    status: "Scheduled",
-    notes: "New patient assessment",
-  },
-  {
-    id: "3",
-    patientId: "3",
-    patientName: "Sophia Williams",
-    date: "2023-06-22",
-    time: "1:30 PM",
-    duration: 60,
-    type: "Diet Review",
-    status: "Scheduled",
-    notes: "Adjust meal plan based on recent lab results",
-  },
-]
-
-// Mock patient data
-const MOCK_PATIENTS = [
-  {
-    id: "1",
-    name: "Emma Johnson",
-    email: "emma.johnson@example.com",
-    phone: "555-123-4567",
-    dateofbirth: "1985-04-12",
-    height: "5'6\"",
-    weight: "145 lbs",
-    allergies: "Peanuts, Shellfish",
-    medicalconditions: "None",
-  },
-  {
-    id: "2",
-    name: "Michael Smith",
-    email: "michael.smith@example.com",
-    phone: "555-987-6543",
-    dateofbirth: "1978-09-23",
-    height: "5'11\"",
-    weight: "185 lbs",
-    allergies: "None",
-    medicalconditions: "Hypertension",
-  },
-  {
-    id: "3",
-    name: "Sophia Williams",
-    email: "sophia.williams@example.com",
-    phone: "555-456-7890",
-    dateofbirth: "1992-07-15",
-    height: "5'4\"",
-    weight: "130 lbs",
-    allergies: "Lactose intolerance",
-    medicalconditions: "None",
-  },
-]
-
 export default function AppointmentDetailPage() {
-  const router = useRouter()
+  const _router = useRouter()
   const params = useParams()
+  const id = params.id as string
   const [appointment, setAppointment] = useState<Appointment | null>(null)
   const [patient, setPatient] = useState<Patient | null>(null)
   const [loading, setLoading] = useState(true)
@@ -95,10 +22,10 @@ export default function AppointmentDetailPage() {
     async function fetchData() {
       try {
         setLoading(true)
-        const appointmentData = await getAppointmentById(params.id)
+        const appointmentData = await getAppointmentById(id)
         setAppointment(appointmentData)
 
-        if (appointmentData.patientid) {
+        if (appointmentData && appointmentData.patientid) {
           const patientData = await getPatientById(appointmentData.patientid)
           setPatient(patientData)
         }
@@ -113,7 +40,7 @@ export default function AppointmentDetailPage() {
     }
 
     fetchData()
-  }, [params.id])
+  }, [id])
 
   const handleCancel = async () => {
     if (!appointment) return
@@ -196,8 +123,8 @@ export default function AppointmentDetailPage() {
     )
   }
 
-  const isUpcoming = appointment.status === "Scheduled"
-  const isPast = ["Completed", "Cancelled", "No-show"].includes(appointment.status)
+  const _isUpcoming = appointment.status === "Scheduled"
+  const _isPast = ["Completed", "Cancelled", "No-show"].includes(appointment.status)
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-8">
@@ -221,12 +148,12 @@ export default function AppointmentDetailPage() {
           <h1 className="text-2xl font-bold text-gray-900">Appointment Details</h1>
         </div>
 
-        {isUpcoming && (
+        {_isUpcoming && (
           <div className="flex space-x-3">
             <Link href={`/dashboard/appointments/edit/${appointment.id}`}>
-              <Button variant="outlineNeonBlue">Reschedule</Button>
+              <Button variant="neonBlue">Reschedule</Button>
             </Link>
-            <Button variant="outlineRed" onClick={() => setShowCancelConfirm(true)} disabled={submitting}>
+            <Button variant="outline" onClick={() => setShowCancelConfirm(true)} disabled={submitting}>
               Cancel Appointment
             </Button>
             <Button variant="solidNeonGreen" onClick={handleComplete} disabled={submitting}>
@@ -337,7 +264,7 @@ export default function AppointmentDetailPage() {
 
               <div className="pt-2">
                 <Link href={`/dashboard/patients/${patient.id}`}>
-                  <Button variant="outlineNeonBlue" className="w-full">
+                  <Button variant="neonBlue" className="w-full">
                     View Full Profile
                   </Button>
                 </Link>
@@ -356,10 +283,10 @@ export default function AppointmentDetailPage() {
               Are you sure you want to cancel this appointment? This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">
-              <Button variant="outlineGray" onClick={() => setShowCancelConfirm(false)} disabled={submitting}>
+              <Button variant="outline" onClick={() => setShowCancelConfirm(false)} disabled={submitting}>
                 No, Keep It
               </Button>
-              <Button variant="solidRed" onClick={handleCancel} disabled={submitting}>
+              <Button variant="default" onClick={handleCancel} disabled={submitting}>
                 {submitting ? "Cancelling..." : "Yes, Cancel"}
               </Button>
             </div>

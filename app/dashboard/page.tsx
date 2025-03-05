@@ -1,35 +1,109 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { useAuth } from "../../contexts/AuthContext"
+import { getPatients, getAppointments } from "../../lib/api"
+import { Patient, Appointment } from "../../lib/types"
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const [patients, setPatients] = useState<Patient[]>([])
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Mock data for dashboard stats
+  // Stats based on real data
   const stats = [
-    { name: "Total Patients", value: "42", icon: "👥", color: "neon-blue" },
-    { name: "Appointments Today", value: "8", icon: "📅", color: "neon-green" },
-    { name: "Diet Plans Active", value: "36", icon: "🥗", color: "neon-purple" },
-    { name: "Pending Tasks", value: "12", icon: "📋", color: "neon-pink" },
+    {
+      name: "Total Patients",
+      value: patients.length.toString(),
+      icon: "👥",
+      color: "neon-blue",
+    },
+    {
+      name: "Appointments Today",
+      value: appointments.filter((a) => a.date === new Date().toISOString().split("T")[0]).length.toString(),
+      icon: "📅",
+      color: "neon-green",
+    },
+    {
+      name: "Active Patients",
+      value: patients.filter((p) => p.status === "Active").length.toString(),
+      icon: "🥗",
+      color: "neon-purple",
+    },
+    {
+      name: "Upcoming Appointments",
+      value: appointments.filter((a) => a.status === "Scheduled").length.toString(),
+      icon: "📋",
+      color: "neon-pink",
+    },
   ]
 
-  // Mock data for recent patients
-  const recentPatients = [
-    { id: "1", name: "Emma Johnson", lastvisit: "2023-06-15", nextappointment: "2023-06-22", status: "Active" },
-    { id: "2", name: "Michael Smith", lastvisit: "2023-06-14", nextappointment: "2023-06-28", status: "Active" },
-    { id: "3", name: "Sophia Williams", lastvisit: "2023-06-10", nextappointment: "2023-06-24", status: "Active" },
-    { id: "4", name: "James Brown", lastvisit: "2023-06-08", nextappointment: null, status: "Inactive" },
-  ]
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const [patientsData, appointmentsData] = await Promise.all([getPatients(), getAppointments()])
+        setPatients(patientsData)
+        setAppointments(appointmentsData)
+        setError(null)
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err)
+        setError("Failed to load dashboard data. Please try again later.")
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  // Mock data for upcoming appointments
-  const upcomingAppointments = [
-    { id: "1", patientName: "Emma Johnson", date: "2023-06-22", time: "10:00 AM", type: "Follow-up" },
-    { id: "2", name: "Liam Davis", date: "2023-06-22", time: "11:30 AM", type: "Initial Consultation" },
-    { id: "3", name: "Olivia Martinez", date: "2023-06-22", time: "2:00 PM", type: "Follow-up" },
-    { id: "4", name: "Noah Wilson", date: "2023-06-23", time: "9:30 AM", type: "Diet Review" },
-  ]
+    fetchData()
+  }, [])
+
+  // Get recent patients
+  const recentPatients = patients
+    .sort((a, b) => {
+      const dateA = a.lastvisit ? new Date(a.lastvisit).getTime() : 0
+      const dateB = b.lastvisit ? new Date(b.lastvisit).getTime() : 0
+      return dateB - dateA
+    })
+    .slice(0, 4)
+
+  // Get upcoming appointments
+  const upcomingAppointments = appointments
+    .filter((a) => a.status === "Scheduled")
+    .sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.time}`).getTime()
+      const dateB = new Date(`${b.date}T${b.time}`).getTime()
+      return dateA - dateB
+    })
+    .slice(0, 3)
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-neon-blue border-t-transparent"></div>
+          <p>Loading dashboard data...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+        <h2 className="mb-2 text-xl font-semibold text-red-700">Error</h2>
+        <p className="mb-4 text-red-600">{error}</p>
+        <button
+          className="rounded-md bg-neon-blue px-4 py-2 text-white hover:bg-neon-blue/80"
+          onClick={() => window.location.reload()}
+        >
+          Try Again
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -82,7 +156,7 @@ export default function DashboardPage() {
                 {recentPatients.map((patient) => (
                   <tr key={patient.id} className="text-sm">
                     <td className="py-3 pr-4 font-medium text-gray-900">{patient.name}</td>
-                    <td className="py-3 pr-4 text-gray-500">{patient.lastvisit}</td>
+                    <td className="py-3 pr-4 text-gray-500">{patient.lastvisit || "N/A"}</td>
                     <td className="py-3 pr-4">
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
@@ -111,19 +185,22 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="space-y-4">
-            {upcomingAppointments.slice(0, 3).map((appointment) => (
+            {upcomingAppointments.map((appointment) => (
               <div key={appointment.id} className="flex items-center rounded-lg border border-gray-100 bg-gray-50 p-4">
                 <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-neon-green/20 text-neon-green">
                   📅
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">{appointment.name || appointment.patientName}</p>
+                  <p className="font-medium text-gray-900">{appointment.patientname}</p>
                   <p className="text-sm text-gray-500">
                     {appointment.time} - {appointment.type}
                   </p>
                 </div>
               </div>
             ))}
+            {upcomingAppointments.length === 0 && (
+              <p className="text-center text-gray-500">No upcoming appointments scheduled.</p>
+            )}
           </div>
         </div>
       </div>

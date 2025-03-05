@@ -12,7 +12,13 @@ import { Appointment } from "../../../lib/types"
 const groupAppointmentsByDate = (appointments: Appointment[]): Record<string, Appointment[]> => {
   return appointments.reduce(
     (groups, appointment) => {
+      // Skip appointments without a date
+      if (typeof appointment.date !== "string") {
+        return groups
+      }
+
       const date = appointment.date
+
       if (!groups[date]) {
         groups[date] = []
       }
