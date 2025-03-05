@@ -27,6 +27,21 @@ module.exports = {
           800: "#1e40af",
           900: "#1e3a8a",
         },
+        // Neon color palette
+        neon: {
+          pink: "#FF69B4", // A brighter, more vibrant pink
+          purple: "#A020F0", // A slightly softer purple
+          blue: "#00BFFF", // A more inviting, deeper blue
+          green: "#32CD32", // A classic lime green
+          yellow: "#FFD700", // A more golden yellow
+          orange: "#FFA500", // A vivid orange
+        },
+      },
+      boxShadow: {
+        'neon-pink': '0 0 5px #FF69B4, 0 0 10px #FF69B4, 0 0 15px #FF69B4',
+        'neon-blue': '0 0 5px #00BFFF, 0 0 10px #00BFFF, 0 0 15px #00BFFF',
+        'neon-green': '0 0 5px #32CD32, 0 0 10px #32CD32, 0 0 15px #32CD32',
+        'neon-purple': '0 0 5px #A020F0, 0 0 10px #A020F0, 0 0 15px #A020F0',
       },
       fontFamily: {
         body: [
